@@ -1,0 +1,203 @@
+<div class="container">
+
+  <header>
+    <h1>Flight Route Planner</h1>
+    <p>Shortest routes between the smallest and largest cities.</p>
+  </header>
+
+  @if (loading()) {
+    <div class="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span>Loading routes...</span>
+    </div>
+  }
+
+  @if (error()) {
+    <mat-card>
+      <mat-card-content>
+        Failed to load routes.
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (routeSummary(); as summary) {
+
+    <section class="cities">
+
+      <mat-card>
+        <mat-card-header>
+          <mat-icon mat-card-avatar>location_city</mat-icon>
+          <mat-card-title>Smallest city</mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <h2>{{ summary.smallestCity.name }}</h2>
+          <p>
+            {{ summary.smallestCity.population | number }}
+            people
+          </p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-icon class="direction">flight</mat-icon>
+
+      <mat-card>
+        <mat-card-header>
+          <mat-icon mat-card-avatar>location_city</mat-icon>
+          <mat-card-title>Largest city</mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <h2>{{ summary.largestCity.name }}</h2>
+          <p>
+            {{ summary.largestCity.population | number }}
+            people
+          </p>
+        </mat-card-content>
+      </mat-card>
+
+    </section>
+
+
+    <section>
+
+      <h2>Best combined route</h2>
+
+      <mat-card>
+
+        <mat-card-header>
+          <mat-icon mat-card-avatar>route</mat-icon>
+
+          <mat-card-title>
+            {{ summary.smallestCity.name }}
+            →
+            {{ summary.largestCity.name }}
+          </mat-card-title>
+
+          <mat-card-subtitle>
+            {{ summary.combinedRoute.totalDistanceKm | number }} km ·
+            {{ formatDuration(summary.combinedRoute.totalDurationMinutes) }}
+          </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+
+          @for (segment of summary.combinedRoute.segments;
+            track $index) {
+
+            <div class="segment">
+
+              <div class="segment-title">
+                <strong>
+                  {{ segment.departureCity }}
+                  →
+                  {{ segment.arrivalCity }}
+                </strong>
+
+                <mat-chip>
+                  {{ segment.airlineName }}
+                </mat-chip>
+              </div>
+
+              <div class="segment-details">
+                <span>{{ segment.distanceKm | number }} km</span>
+
+                <span>
+                  {{ formatDuration(segment.durationMinutes) }}
+                </span>
+
+                @if (segment.waitingMinutes > 0) {
+                  <span>
+                    Wait:
+                    {{ formatDuration(segment.waitingMinutes) }}
+                  </span>
+                }
+              </div>
+
+            </div>
+
+            <mat-divider></mat-divider>
+          }
+
+        </mat-card-content>
+
+      </mat-card>
+
+    </section>
+
+
+    <section>
+
+      <h2>Routes by airline</h2>
+
+      <div class="airlines">
+
+        @for (route of summary.airlineRoutes;
+          track route.airlineId) {
+
+          <mat-card>
+
+            <mat-card-header>
+
+              <mat-icon mat-card-avatar>flight</mat-icon>
+
+              <mat-card-title>
+                {{ route.airlineName }}
+              </mat-card-title>
+
+              <mat-card-subtitle>
+                @if (route.available) {
+                  {{ route.totalDistanceKm | number }} km ·
+                  {{ formatDuration(route.totalDurationMinutes) }}
+                } @else {
+                  No route available
+                }
+              </mat-card-subtitle>
+
+            </mat-card-header>
+
+            <mat-card-content>
+
+              @if (route.available) {
+
+                @for (segment of route.segments;
+                  track $index) {
+
+                  <div class="airline-segment">
+                    <strong>
+                      {{ segment.departureCity }}
+                      →
+                      {{ segment.arrivalCity }}
+                    </strong>
+
+                    <span>
+                      {{ segment.distanceKm | number }} km
+                    </span>
+                  </div>
+
+                }
+
+              } @else {
+
+                <p>
+                  No route from
+                  {{ summary.smallestCity.name }}
+                  to
+                  {{ summary.largestCity.name }}
+                  using {{ route.airlineName }}.
+                </p>
+
+              }
+
+            </mat-card-content>
+
+          </mat-card>
+        }
+
+      </div>
+
+    </section>
+
+  }
+
+</div>
